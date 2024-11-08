@@ -1,0 +1,137 @@
+SELECT 
+-- Constituent Information:
+	r.[ID],
+    r.[CONSTITUENT_ID],
+	CASE 
+        WHEN r.[INACTIVE] = 0 THEN 'No'		-- Actual values UNKNOWN, this is just a guess
+        WHEN r.[INACTIVE] = -1 THEN 'Yes'	-- Actual values UNKNOWN, this is just a guess
+    END AS [INACTIVE],
+	CASE 
+        WHEN r.[DECEASED] = 0 THEN 'No'		-- Actual values UNKNOWN, this is just a guess
+        WHEN r.[DECEASED] = -1 THEN 'Yes'	-- Actual values UNKNOWN, this is just a guess
+    END AS [DECEASED],
+	CASE 
+        WHEN r.[ANONYMOUS] = 0 THEN 'No'	-- Actual values UNKNOWN, this is just a guess
+        WHEN r.[ANONYMOUS] = -1 THEN 'Yes'	-- Actual values UNKNOWN, this is just a guess
+    END AS [ANONYMOUS?],
+    CASE 
+        WHEN r.[SEX] = 1 THEN 'Male'		-- Actual values UNKNOWN, this is just a guess
+        WHEN r.[SEX] = 2 THEN 'Female'		-- Actual values UNKNOWN, this is just a guess
+        WHEN r.[SEX] = 3 THEN 'Unknown'		-- Actual values UNKNOWN, this is just a guess
+        ELSE 'Other'	-- Handles unexpected values
+    END AS [GENDER],
+    CASE
+		WHEN r.[TITLE_1] = 1 THEN 'Mr.'		-- Actual values UNKNOWN, this is just a guess
+    	WHEN r.[TITLE_1] = 2 THEN 'Ms.'		-- Actual values UNKNOWN, this is just a guess
+		WHEN r.[TITLE_1] = 3 THEN 'Mrs.'	-- Actual values UNKNOWN, this is just a guess
+		WHEN r.[TITLE_1] = 4 THEN 'Dr.'		-- Actual values UNKNOWN, this is just a guess
+		ELSE 'Other'	-- Handles unexpected values
+	END AS [TITLE_1],
+    r.[FIRST_NAME],
+    r.[LAST_NAME],
+    r.[MARITAL_STATUS],
+	r.[ORG_ID],
+	r.[ORG_NAME],
+	r.[DATE_ADDED],
+	CASE
+		WHEN r.[NO_VALID_ADDRESSES] = 0 THEN 'No'	-- Actual values UNKNOWN, this is just a guess
+		WHEN r.[NO_VALID_ADDRESSES] = -1 THEN 'Yes'	-- Actual values UNKNOWN, this is just a guess
+	END AS [NO_VALID_ADDRESSES?],
+-- Calculating Age based on BIRTH_DATE:
+--    CASE
+--        WHEN r.[BIRTH_DATE] IS NULL THEN NULL
+--        ELSE DATEDIFF(YEAR, r.[BIRTH_DATE], GETDATE()) 
+--             - CASE 
+--                   WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.[BIRTH_DATE], GETDATE()), r.[BIRTH_DATE]) > GETDATE() 
+--                   THEN 1 ELSE 0 
+--               END
+--    END AS [AGE],
+    CONVERT(VARCHAR(10), CAST(r.[BIRTH_DATE] AS DATE), 101) AS [BDAY],
+-- Addresse/Salutation:
+	r.[PRIMARY_ADDRESSEE],
+	r.[PRIMARY_SALUTATION],
+-- Spouse Information:
+    s.[CONSTITUENT_ID] AS [SP_CONSID],
+	s.[INACTIVE] AS [SP_INACTIVE],
+    s.[DECEASED] AS [SP_DECEASED],
+	CASE 
+        WHEN s.[ANONYMOUS] = 0 THEN 'No'	-- Actual values UNKNOWN, this is just a guess
+        WHEN s.[ANONYMOUS] = -1 THEN 'Yes'	-- Actual values UNKNOWN, this is just a guess
+    END AS [SP_ANONYMOUS?],
+    CASE 
+        WHEN s.[SEX] = 1 THEN 'Male'
+        WHEN s.[SEX] = 2 THEN 'Female'
+        WHEN s.[SEX] = 3 THEN 'Unknown'
+        ELSE 'Other'
+    END AS [SP_GENDER],
+    CASE
+        WHEN s.[TITLE_1] = 1 THEN 'Mr.'
+        WHEN s.[TITLE_1] = 2 THEN 'Ms.'
+        WHEN s.[TITLE_1] = 3 THEN 'Mrs.'
+        WHEN s.[TITLE_1] = 4 THEN 'Dr.'
+        ELSE 'Other'
+    END AS [SP_TITLE_1],
+    s.[FIRST_NAME] AS [SP_FIRST_NAME],
+    s.[LAST_NAME] AS [SP_LAST_NAME],
+    s.[MARITAL_STATUS] AS [SP_MARITAL_STATUS],
+	s.[DATE_ADDED] AS [SP_DATE_ADDED],
+    CONVERT(VARCHAR(10), CAST(s.[BIRTH_DATE] AS DATE), 101) AS [SP_BDAY],
+-- Address Information:
+	a.[ADDRESS_BLOCK] AS [ADDRESS_LINE1],
+    a.[CITY],
+    a.[STATE],
+    a.[POST_CODE] AS [ZIP],
+    CASE
+		WHEN ca.[PREFERRED] = 0 THEN 'No'		-- Actual values UNKNOWN, this is just a guess
+		WHEN ca.[PREFERRED] = -1 THEN 'Yes'		-- Actual values UNKNOWN, this is just a guess
+	END AS [PREFERRED],
+	CASE
+		WHEN ca.[SENDMAIL] = 0 THEN 'No'		-- Actual values UNKNOWN, this is just a guess
+		WHEN ca.[SENDMAIL] = -1 THEN 'Yes'		-- Actual values UNKNOWN, this is just a guess
+	END AS [SENDMAIL?],
+	a.[DATE_LAST_CHANGED],
+	a.[INFO_SOURCE],
+-- Solicit Codes
+	sc.[SOLICIT_CODE],
+-- Notes
+	n.[DateAdded],
+	n.[Description],
+	n.[Title],
+	n.[NoteTypeId],
+-- Gift Summary
+
+-- Last Gift
+
+-- Constituent Codes
+	cc.[CODE] AS [CONS_CODE]	-- Need to decode
+-- Attributes
+
+
+FROM 
+    [RE7_17537_8df8b88e-5f5d-4808-b520-bdeb493f669e].[dbo].[RECORDS] r
+LEFT JOIN 
+    [RE7_17537_8df8b88e-5f5d-4808-b520-bdeb493f669e].[dbo].[RECORDS] s
+    ON r.[ID] = s.[SPOUSE_ID]
+LEFT JOIN 
+    [RE7_17537_8df8b88e-5f5d-4808-b520-bdeb493f669e].[dbo].[CONSTIT_ADDRESS] ca
+    ON r.[ID] = ca.[CONSTIT_ID]
+LEFT JOIN 
+    [RE7_17537_8df8b88e-5f5d-4808-b520-bdeb493f669e].[dbo].[ADDRESS] a
+    ON ca.[ID] = a.[ID]
+LEFT JOIN
+	[RE7_17537_8df8b88e-5f5d-4808-b520-bdeb493f669e].[dbo].[CONSTITUENT_SOLICITCODES] sc
+	ON r.[ID] = sc.[ID]
+LEFT JOIN
+	[RE7_17537_8df8b88e-5f5d-4808-b520-bdeb493f669e].[dbo].[ConstituentNotepad] n
+	ON r.[ID] = n.[ParentId]
+LEFT JOIN
+	[RE7_17537_8df8b88e-5f5d-4808-b520-bdeb493f669e].[dbo].[CONSTITUENT_CODES] cc
+	ON r.[ID] = cc.[CONSTIT_ID]
+WHERE
+	r.[CONSTITUENT_ID] IS NOT NULL
+	AND
+	r.[ID] = '71940'
+
+-- Filters:
+ORDER BY 
+     r.[ID] ASC

@@ -13,7 +13,7 @@ T-SQL queries for exploring and reporting on a Blackbaud Raiser's Edge 7 databas
 
 ## Database structure
 
-![Raiser's Edge table relationships: RECORDS, CONSTIT_ADDRESS, ADDRESS](database-diagram.png)
+![Raiser's Edge table relationships: RECORDS, CONSTIT_ADDRESS, ADDRESS](database_diagram.png)
 
 | Table | Purpose | Key columns |
 |---|---|---|
